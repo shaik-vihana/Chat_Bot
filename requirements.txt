@@ -1,0 +1,33 @@
+# TMI AI Assistant - PDF Q&A System
+# Robust multi-provider LLM support with streaming
+
+# Core UI
+streamlit>=1.30.0
+
+# LangChain & AI
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-core>=0.1.0
+langchain-ollama>=0.0.1
+langchain-huggingface>=0.0.1
+
+# Vector Store & Embeddings
+faiss-cpu>=1.7.4
+sentence-transformers>=2.2.2
+
+# PDF Processing
+pypdf>=3.17.0
+PyMuPDF>=1.23.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Optional LLM Providers (uncomment as needed)
+# openai>=1.0.0           # For OpenAI GPT models
+# groq>=0.4.0             # For Groq ultra-fast inference
+# anthropic>=0.18.0       # For Anthropic Claude models
+
+# Development
+# pytest>=7.0.0
+# black>=23.0.0

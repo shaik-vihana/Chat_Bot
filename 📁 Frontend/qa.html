@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMI AI Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --error: #dc2626;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-hover: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .title-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .title-section h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0;
+        }
+
+        .title-section i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pdf-info {
+            background: var(--surface);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .info-icon {
+            color: var(--primary);
+            cursor: help;
+            font-size: 1rem;
+            position: relative;
+        }
+
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-primary);
+            color: white;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--text-primary);
+        }
+
+        .info-icon:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .tooltip-label {
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .tooltip-value {
+            font-weight: 600;
+        }
+
+        .view-log-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .view-log-btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--border-hover);
+        }
+
+        /* Main Content Layout */
+        .main-content {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        /* Chat Messages */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: var(--background);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--surface);
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* WhatsApp-style Chat Messages */
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message.assistant {
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+
+        .message.user .message-bubble {
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-bubble {
+            background: #e3f2fd;
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .message.user .message-header {
+            text-align: right;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message.assistant .message-header {
+            text-align: left;
+            color: var(--primary);
+        }
+
+        .message-content {
+            line-height: 1.4;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .message.user .message-meta {
+            justify-content: flex-end;
+        }
+
+        .message.assistant .message-meta {
+            justify-content: flex-start;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .response-time {
+            font-size: 0.75rem;
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .message-score {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Images in messages */
+        .message-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            max-width: 70%;
+        }
+
+        .message.user .message-images {
+            justify-content: flex-end;
+        }
+
+        .message.assistant .message-images {
+            justify-content: flex-start;
+        }
+
+        .message-image {
+            max-width: 150px;
+            max-height: 100px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: transform 0.2s ease;
+        }
+
+        .message-image:hover {
+            transform: scale(1.05);
+        }
+
+        /* Input Area */
+        .input-area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s;
+            background: var(--gray-50);
+            color: var(--text-primary);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: white;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .btn-primary:disabled {
+            background: var(--gray-400);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Image Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .modal-content img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            transform-origin: center center;
+            transition: transform 0.3s ease;
+            cursor: move;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.5rem;
+            border-radius: var(--radius);
+        }
+
+        .zoom-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: all 0.2s ease;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 300px;
+            }
+
+            .chat-area {
+                height: calc(100vh - 500px);
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .header-content {
+                padding: 0;
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .title-section h1 {
+                font-size: 1.25rem;
+            }
+
+            .header-actions {
+                justify-content: space-between;
+            }
+
+            .sidebar {
+                padding: 1rem;
+            }
+
+            .chat-area {
+                padding: 1rem;
+                height: calc(100vh - 400px);
+            }
+
+            .input-area {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.625rem 1rem;
+                font-size: 0.8125rem;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .message {
+                margin-bottom: 0.75rem;
+            }
+
+            .message-bubble {
+                padding: 0.625rem 0.875rem;
+                font-size: 0.8125rem;
+            }
+
+            .images-gallery {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            }
+
+            .zoom-controls {
+                bottom: 10px;
+                gap: 0.5rem;
+            }
+
+            .zoom-btn {
+                font-size: 1rem;
+                padding: 0.375rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="title-section">
+                    <i class="fas fa-brain"></i>
+                    <h1>TMI AI Assistant</h1>
+                </div>
+                <div class="header-actions">
+                    <div class="pdf-info" id="pdfInfo">
+                        <i class="fas fa-file-pdf"></i>
+                        <span id="pdfName">{{ metadata.filename if metadata else 'No PDF loaded' }}</span>
+                        <i class="fas fa-info-circle info-icon">
+                            <div class="tooltip">
+                                <div class="tooltip-content">
+                                    <div class="tooltip-row">
+                                        <span class="tooltip-label">Pages:</span>
+                                        <span class="tooltip-value" id="tooltip-pages">{{ metadata.total_pages if metadata else 'N/A' }}</span>
+                                    </div>
+                                    <div class="tooltip-row">
+                                        <span class="tooltip-label">Images:</span>
+                                        <span class="tooltip-value" id="tooltip-images">{{ metadata.num_page_images if metadata else 'N/A' }}</span>
+                                    </div>
+                                    <div class="tooltip-row">
+                                        <span class="tooltip-label">Processing:</span>
+                                        <span class="tooltip-value" id="tooltip-time">{{ metadata.processing_time if metadata else 'N/A' }}s</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </i>
+                    </div>
+                    <button class="view-log-btn" onclick="window.open('/view-log', '_blank')">
+                        <i class="fas fa-chart-line"></i>
+                        View Analytics
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Chat Area -->
+            <div class="chat-area">
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="message-bubble">
+                            <div class="message-header">
+                                <i class="fas fa-robot"></i>
+                                TMI AI Assistant
+                            </div>
+                            <div class="message-content">Hello! I've analyzed your PDF. Ask me any questions about the content, and I'll use both text and visual analysis to provide accurate answers.</div>
+                        </div>
+                        <div class="message-meta">
+                            <div class="message-time" id="initialTime"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <div class="input-group">
+                        <textarea
+                            id="questionInput"
+                            placeholder="Ask a question about your PDF..."
+                            rows="2"
+                        ></textarea>
+                    </div>
+                    <button id="askBtn" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Ask
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="modal" onclick="closeModal()">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="zoom-controls" onclick="event.stopPropagation()">
+            <button class="zoom-btn" onclick="zoomImage(-0.1)" title="Zoom Out">
+                <i class="fas fa-search-minus"></i>
+            </button>
+            <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">
+                <i class="fas fa-search"></i>
+            </button>
+            <button class="zoom-btn" onclick="zoomImage(0.1)" title="Zoom In">
+                <i class="fas fa-search-plus"></i>
+            </button>
+        </div>
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="modalImage">
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+        const questionInput = document.getElementById('questionInput');
+        const askBtn = document.getElementById('askBtn');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const initialTime = document.getElementById('initialTime');
+
+        // Image zoom variables
+        let currentZoom = 1;
+        const minZoom = 0.5;
+        const maxZoom = 5;
+        let isPanning = false;
+        let startX, startY, translateX = 0, translateY = 0;
+
+        // Set initial timestamp
+        initialTime.textContent = new Date().toLocaleTimeString();
+
+        // Image modal functions
+        function openModal(imageSrc) {
+            modalImage.src = imageSrc;
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            updateImageTransform();
+            imageModal.style.display = 'block';
+            // Prevent body scroll when modal is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            imageModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function zoomImage(delta) {
+            if (event) event.stopPropagation();
+            currentZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom + delta));
+            updateImageTransform();
+        }
+
+        function resetZoom() {
+            if (event) event.stopPropagation();
+            currentZoom = 1;
+            translateX = 0;
+            translateY = 0;
+            updateImageTransform();
+        }
+
+        function updateImageTransform() {
+            modalImage.style.transform = `scale(${currentZoom}) translate(${translateX}px, ${translateY}px)`;
+        }
+
+        // Mouse wheel zoom
+        modalImage.addEventListener('wheel', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            zoomImage(delta);
+        });
+
+        // Pan functionality
+        modalImage.addEventListener('mousedown', function(e) {
+            if (currentZoom > 1) {
+                isPanning = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+                modalImage.style.cursor = 'grabbing';
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isPanning) {
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+                updateImageTransform();
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isPanning) {
+                isPanning = false;
+                modalImage.style.cursor = 'move';
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target == imageModal) {
+                closeModal();
+            }
+        }
+
+        // Auto-resize textarea
+        questionInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+
+        // Ask question function
+        async function askQuestion() {
+            const question = questionInput.value.trim();
+            if (!question) return;
+
+            const startTime = Date.now();
+
+            // Add user message
+            addMessage('question', question);
+
+            // Disable input
+            questionInput.disabled = true;
+            askBtn.disabled = true;
+            askBtn.innerHTML = '<div class="loading"></div> Thinking...';
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: question,
+                        use_vision: true,
+                        top_k: 5
+                    })
+                });
+
+                const endTime = Date.now();
+                const responseTime = ((endTime - startTime) / 1000).toFixed(2);
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    addMessage('answer', data.answer, data.images, data.page, responseTime, data.score);
+                } else {
+                    addMessage('answer', `Error: ${data.error || 'Unknown error occurred'}`, [], null, responseTime, null);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const endTime = Date.now();
+                const responseTime = ((endTime - startTime) / 1000).toFixed(2);
+                addMessage('answer', 'Error: Failed to get response from server', [], null, responseTime, null);
+            }
+
+            // Re-enable input
+            questionInput.disabled = false;
+            askBtn.disabled = false;
+            askBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Ask';
+            questionInput.value = '';
+            questionInput.style.height = 'auto';
+            questionInput.focus();
+        }
+
+        // Add message to chat (WhatsApp style)
+        function addMessage(type, content, images = [], page = null, responseTime = null, score = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type === 'question' ? 'user' : 'assistant'}`;
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+
+            if (type === 'question') {
+                bubbleDiv.innerHTML = `
+                    <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
+                `;
+            } else {
+                bubbleDiv.innerHTML = `
+                    <div class="message-content">${content.replace(/\n/g, '<br>')}</div>
+                `;
+            }
+
+            messageDiv.appendChild(bubbleDiv);
+
+            // Add images if available
+            if (images && images.length > 0) {
+                const imagesDiv = document.createElement('div');
+                imagesDiv.className = 'message-images';
+
+                images.forEach(image => {
+                    const img = document.createElement('img');
+                    img.src = image;
+                    img.className = 'message-image';
+                    img.onclick = () => openModal(image);
+                    imagesDiv.appendChild(img);
+                });
+
+                messageDiv.appendChild(imagesDiv);
+            }
+
+            // Add meta information (time, response time, page)
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'message-meta';
+
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'message-time';
+            timeDiv.textContent = new Date().toLocaleTimeString();
+            metaDiv.appendChild(timeDiv);
+
+            if (responseTime && type === 'answer') {
+                const responseTimeDiv = document.createElement('div');
+                responseTimeDiv.className = 'response-time';
+                responseTimeDiv.textContent = `${responseTime}s`;
+                metaDiv.appendChild(responseTimeDiv);
+            }
+
+            if (score !== null && score !== undefined && type === 'answer') {
+                const scoreDiv = document.createElement('div');
+                scoreDiv.className = 'message-score';
+                scoreDiv.innerHTML = `<i class="fas fa-star"></i> ${(score * 100).toFixed(1)}%`;
+                metaDiv.appendChild(scoreDiv);
+            }
+
+            if (page && type === 'answer') {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'message-time';
+                pageDiv.textContent = `Page ${page}`;
+                metaDiv.appendChild(pageDiv);
+            }
+
+            messageDiv.appendChild(metaDiv);
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Event listeners
+        askBtn.addEventListener('click', askQuestion);
+        questionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+
+        // Keyboard shortcuts for image zoom
+        document.addEventListener('keydown', function(e) {
+            if (imageModal.style.display === 'block') {
+                if (e.key === '+' || e.key === '=') {
+                    e.preventDefault();
+                    zoomImage(0.1);
+                } else if (e.key === '-') {
+                    e.preventDefault();
+                    zoomImage(-0.1);
+                } else if (e.key === '0') {
+                    e.preventDefault();
+                    resetZoom();
+                } else if (e.key === 'Escape') {
+                    closeModal();
+                }
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            questionInput.focus();
+        });
+    </script>
+</body>
+</html>
