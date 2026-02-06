@@ -107,6 +107,16 @@ class PDFMetadata:
     indexed_at: float
     file_size: int
 
+class PDFQAEngine:
+    def __init__(self, model_name, embedding_model):
+        self.model_name = model_name
+        self.embedding_model = embedding_model
+
+    def get_model_info(self):
+        return {
+            "LLM": self.model_name,
+            "Embeddings": self.embedding_model
+        }
 
 class QueryUnderstanding:
     """Intelligent query analysis and understanding"""
@@ -827,3 +837,5 @@ What would you like to know?"""
     def __del__(self):
         if hasattr(self, '_executor'):
             self._executor.shutdown(wait=False)
+    
+    
