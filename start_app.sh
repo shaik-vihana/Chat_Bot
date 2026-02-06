@@ -3,6 +3,9 @@
 
 set -e
 
+# Stay in project root (Chat_Bot)
+cd "$(dirname "$0")"
+
 echo "========================================================================="
 echo "   PDF CHAT APPLICATION (Mistral 7B + Ollama)"
 echo "========================================================================="
@@ -19,11 +22,13 @@ if [ ! -d "venv" ]; then
     echo "Creating virtual environment..."
     python3 -m venv venv
 fi
+
 source venv/bin/activate
 
 # Install dependencies
 echo "Checking dependencies..."
 pip install -r requirements.txt --quiet
+
 echo "Installing ColPali..."
 pip install colpali-engine --quiet
 
@@ -46,4 +51,5 @@ echo "Starting Streamlit App..."
 echo "Access at http://localhost:8501"
 echo "========================================================================="
 
+# Run Streamlit app (flat structure)
 streamlit run app_pdf_qa.py
